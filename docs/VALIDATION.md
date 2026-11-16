@@ -100,3 +100,33 @@ Reliability tables (deciles) are in the JSON.
 - Shot artefact: see D-009.
 
 **Risk for Phase 5:** the chosen pass is the best option only 8–12% of the time, and the "best" is a maximum over about 25 noisy estimates (winner's curse). Vision Loss = max(all) − max(seen) inherits that bias, so Phase 5 needs a null model (random "seen" sets of the same size).
+
+## Phase 5, quick pass (16 Nov 2026): `scripts/decompose_pose_games.py` → `reports/decomposition_quick.json`
+Pose games, pass decisions, pass + carry options, ±60° / 1.5 s, 200 draws. n = 1,609 decisions. Units: xG within 10 s.
+
+| Subset | n | Total | Vision | Decision | Vision share | VL null | VL placebo | P(best seen) |
+|---|---|---|---|---|---|---|---|---|
+| All | 1,609 | .00922 | .00182 | .00740 | 19.8% | .00170 | .00460 | .735 |
+| Attacking half | 743 | .01239 | .00228 | .01011 | 18.4% | .00200 | .00554 | .717 |
+| Final third | 385 | .01364 | .00220 | .01144 | 16.1% | .00199 | .00505 | .714 |
+| Counter | 73 | .01088 | .00152 | .00936 | 14.0% | .00204 | .00530 | .768 |
+
+Identity VL + DL = TL holds exactly (unit tests + by construction).
+
+**Sensitivity of vision share** (θ × T): 45°: 30 / 26 / 21%; 60°: 23 / 20 / 16%; 90°: 13 / 10 / 8%. Across the whole grid **Decision Loss is 70–92% of total loss**.
+
+**Null and placebo:**
+- Placebo (cone rotated 180°): VL 2.5× higher. The real cones point at where value is, a sanity PASS.
+- Null (random seen set of the same size): VL ≈ actual (0.00170 vs 0.00182). *Given how many options a carrier sees*, which ones he sees is not better than random with respect to value. Exception: counters, VL 0.00152 vs null 0.00204 (n = 73, needs more data).
+
+**Player profiles (39 players ≥ 15 decisions):**
+- Empirical-Bayes weights 0.13 (VL) / 0.16 (DL): most between-player spread is noise at this sample size.
+- Split-half Spearman (26 players ≥ 30 decisions): VL 0.39, DL 0.37. Modest.
+- VL vs DL ρ = 0.18.
+
+**Construct (scanning before receiving vs Vision Loss, within position): ρ = −0.01**, no relation.
+
+**Reading:**
+1. Robust: most lost value is *decision*, not *vision*, under every cone/memory setting.
+2. Caveat: Decision Loss also contains the value model's disagreement with players (chosen-vs-other AUC on value 0.57, Phase 3). "Decision Loss" = true decision error + model error. It must not be sold as pure decision error.
+3. Player-level Vision Loss is weak with 2 games. Scaling (Phase 4) is needed for profiles.

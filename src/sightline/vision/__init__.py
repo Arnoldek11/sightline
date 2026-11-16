@@ -62,6 +62,13 @@ class DecisionGeometry:
 def p_seen(g: DecisionGeometry, cone_deg: float, memory_s: float, max_move_m: float = 3.0,
            min_lag_s: float = 0.0, placebo: bool = False) -> tuple[np.ndarray, float]:
     """(P(seen) per option (M,), window pose coverage)."""
+    seen, coverage = seen_draws(g, cone_deg, memory_s, max_move_m, min_lag_s, placebo)
+    return seen.mean(axis=1), coverage
+
+
+def seen_draws(g: DecisionGeometry, cone_deg: float, memory_s: float, max_move_m: float = 3.0,
+               min_lag_s: float = 0.0, placebo: bool = False) -> tuple[np.ndarray, float]:
+    """(seen indicator per option and Monte Carlo draw, shape (M, D); window pose coverage)."""
     lo = int(round(min_lag_s * TRACKING_FPS))
     hi = min(int(round(memory_s * TRACKING_FPS)), g.n_lags - 1)
     lags = np.arange(lo, hi + 1)
@@ -76,7 +83,18 @@ def p_seen(g: DecisionGeometry, cone_deg: float, memory_s: float, max_move_m: fl
     in_view = (off <= np.radians(cone_deg)) & (moved <= max_move_m)[:, :, None]
     in_view &= ~np.isnan(yaw)[:, None, :]
     coverage = float(np.mean(~np.isnan(yaw[:, 0]))) if len(lags) else 0.0
-    return in_view.any(axis=0).mean(axis=1), coverage
+    return in_view.any(axis=0), coverage
+
+
+def with_static_options(g: DecisionGeometry, points: np.ndarray,
+                        ids: list[str]) -> DecisionGeometry:
+    """Append static options (e.g. carry end points, pitch frame (P, 2)) to a geometry."""
+    L = g.n_lags
+    extra = np.repeat(np.asarray(points, float)[None], L, axis=0)
+    return DecisionGeometry(g.event_id, g.carrier_id,
+                            np.r_[g.option_ids.astype(object), np.array(ids, dtype=object)],
+                            g.carrier_xy, np.concatenate([g.option_xy, extra], axis=1),
+                            g.yaw_draws, g.yaw_point)
 
 
 def build_geometry(decisions: pd.DataFrame, players: pd.DataFrame, pose: pd.DataFrame,

@@ -50,6 +50,9 @@ Kept the PLAN defaults. On the receiver-sanity AUC the grid optimum is ±60° / 
 - **Cross-fitting:** 5 game folds; every game, including both pose games, is valued by models that never saw it.
 - **Decision set:** possessions ending in a pass (chosen = pass to the intended target) or a shot. Carry options are "keep carrying" alternatives at the release moment.
 
-## D-009 (16 Nov 2026): shots out of the main loss split → proposal, NOT yet agreed
+## D-009 (16 Nov 2026): shots out of the main loss split → AGREED (16 Nov)
 Shot options remain over-valued: within 30 m, "shoot" is the best option in 69% of decisions, while players shoot in 27%. This is selection bias. xG is learned only from shots players chose to take, so it cannot value shots they rightly passed up, and the "should shoot more" artefact would dominate any headline.
 Proposal: the main Vision/Decision split uses **pass + carry options and pass decisions** (1,789 decisions in the pose games). Rationale beyond the artefact: the goal's location is always known, so "did he see the shot?" is not a perception question; Sightline is about seeing teammates and space. Shots are reported separately as a sensitivity analysis.
+
+## D-010 (16 Nov 2026): the chosen option counts as perceived
+In the loss split, the chosen option is always in the seen set (he played it, so he perceived it), even when the cone model gives it P(seen) < 1. This keeps Decision Loss ≥ 0 and the identity exact per draw. Option values come from `options.parquet` (D-008); the decision set is pass decisions with pass + carry options (D-009), pose coverage ≥ 50% (D-007).
