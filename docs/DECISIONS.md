@@ -39,3 +39,17 @@ Independent per-frame joint noise implies head-yaw sd ≈ 16° per frame, but th
 
 ## D-007 (16 Nov 2026): default cone ±60°, memory 1.5 s, chosen a priori, not tuned
 Kept the PLAN defaults. On the receiver-sanity AUC the grid optimum is ±60° / 1.0 s (0.717 vs 0.684 at 1.5 s), but discriminating the receiver is a check, not the objective (we want what the carrier could know about, not a pass predictor), so the default is not moved towards it. The full 3×3 grid is carried to the Phase 5 sensitivity analysis. Options are teammates at any distance (no range limit). Decisions need pose on ≥ 50% of window samples (86.5% of decisions pass).
+
+## D-008 (16 Nov 2026): option values, one currency (expected goals)
+- **V(state) = E[xG of own shots in the next 10 s, before the opponent regains]**, LightGBM on ball-location state features (attacking frame). The PLAN target was "shot or box entry within 10 s"; changed so pass, carry and shot options share one unit (a shot option is worth its xG).
+- **Horizon:** 10 s (PLAN). Tested 30 s / to possession end because shots looked over-valued. It barely changed that (shot best when available 0.66 vs 0.69) and made V worse (R² 0.036 vs 0.055, SkillCorner EPV ρ 0.72 vs 0.80), so it was **rejected**. Outputs kept under the `_h10` / default tags for the record.
+- **xG** = logistic(distance, goal angle, n outfield defenders in the ball–post–post triangle, nearest defender), 526 shots. Blocking was added after shots dominated the option ranking; it improves Brier 0.0993 → 0.0978 and AUC 0.728 → 0.739.
+- **P(pass)** = logistic on physics: time-to-intercept margins along the line (ball 15 m/s; defenders 0.3 s reaction, 7 m/s, 1 m reach, current velocity), length, forward gain, defenders within 3 m of the lane, nearest defender to target. Point-to-player at release.
+- **P(carry)** = logistic on carry physics (carrier 5 m/s), trained on possessions flagged `carry`; outcome = possession not ended by `possession_loss`.
+- **V_loss** = −V_opp at the target / end point (the opponent's value in their frame). Simplification: the true loss spot for an intercepted pass is on the lane.
+- **Cross-fitting:** 5 game folds; every game, including both pose games, is valued by models that never saw it.
+- **Decision set:** possessions ending in a pass (chosen = pass to the intended target) or a shot. Carry options are "keep carrying" alternatives at the release moment.
+
+## D-009 (16 Nov 2026): shots out of the main loss split → proposal, NOT yet agreed
+Shot options remain over-valued: within 30 m, "shoot" is the best option in 69% of decisions, while players shoot in 27%. This is selection bias. xG is learned only from shots players chose to take, so it cannot value shots they rightly passed up, and the "should shoot more" artefact would dominate any headline.
+Proposal: the main Vision/Decision split uses **pass + carry options and pass decisions** (1,789 decisions in the pose games). Rationale beyond the artefact: the goal's location is always known, so "did he see the shot?" is not a perception question; Sightline is about seeing teammates and space. Shots are reported separately as a sensitivity analysis.

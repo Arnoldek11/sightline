@@ -24,6 +24,6 @@ options:
   shot_max_dist_m: 30
   lead_pass_s: 0.5
 value:
-  horizon_s: 10
+  horizon_s: 10            # PLAN default; 30 s (to possession end) tested and rejected, D-008
 profiles:
   min_decisions: 15

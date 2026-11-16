@@ -71,6 +71,32 @@ P(seen) by option bearing from the attacking direction (all decisions): 0–45°
 - Within position, decision level: scans before *receiving* vs P(seen behind) ρ = 0.03 (none); scans in the *release window* ρ = 0.13 (weak, partly mechanical).
 - Pre-reception scanning does not show up in a 1.5 s pre-release memory. Proper test deferred to Phase 5 (scanning vs Vision Loss, controlled for position).
 
-**Human check:** 30 random decisions rendered to `reports/vision_frames/` (index.csv has columns for reviewer verdicts). Spot-check by Claude of 2 frames: plausible (cone, memory-seen receiver behind-left). **Awaiting human review.**
+**Human check: PASS (16 Nov 2026).** 30 random decisions rendered to `reports/vision_frames/`, reviewed by the team: "looks ok". Claude spot-check of 2 frames also plausible.
 
 **Phase 2 exit: PASS** (receiver sanity + placebo pass; defaults logged in D-007).
+
+## Phase 3: option values (16 Nov 2026), `scripts/fit_option_models.py` → `reports/values_validation.json`
+All 20 games, 5-fold cross-fitting by game (all numbers out-of-fold). n: 526 shots (64 goals), 15,993 targeted passes, 9,349 carries, 125,246 value states (every 0.5 s of live possession).
+
+| Model | Metric | Model | Baseline | Status |
+|---|---|---|---|---|
+| P(pass) | Brier | 0.0994 | 0.1263 length-only / 0.1341 base rate | PASS |
+| P(pass) | AUC | 0.862 | 0.622 length-only | PASS |
+| P(pass) vs SkillCorner xPass (same 15,101 passes) | AUC / Spearman | 0.872 / ρ 0.833 | SkillCorner 0.904 | OK, SkillCorner better |
+| P(carry) | Brier / AUC | 0.0936 / 0.752 | 0.1020 base rate | PASS (weak) |
+| xG | Brier / AUC / Σ xG vs goals | 0.0978 / 0.739 / 63.7 vs 64 | 0.1069 | PASS |
+| V(state) | OOF R² | 0.055 | 0.045 (x-bins) | PASS (sparse target) |
+| V(state) | AUC for "own shot within 10 s" / mean pred vs obs | 0.858 / 0.00420 vs 0.00421 | | PASS, calibrated |
+| V vs SkillCorner EPV at release | Spearman | 0.80 (1925299) / 0.81 (1996435) | | PASS |
+
+Reliability tables (deciles) are in the JSON.
+
+**Gate G1a: PASS.**
+
+**Face validity (pass decisions, pose games, n = 1,789):**
+- Within-decision AUC of the chosen pass vs the other passes: on P(success) 0.68, on value 0.57, on V(after success) 0.51. Players pick safe passes, and V adds little in deep areas, where every option is worth ≈ 0 xG in the next 10 s.
+- Value quantiles of pass options: p10 −0.0007, median 0.0008, p90 0.0099, p99 0.0237 xG. Losses will concentrate in the attacking half, which matches the counter-attack focus.
+- Total loss does not depend on the pass outcome (successful 0.0093, unsuccessful 0.0081), consistent with ex-ante values (no leakage).
+- Shot artefact: see D-009.
+
+**Risk for Phase 5:** the chosen pass is the best option only 8–12% of the time, and the "best" is a maximum over about 25 noisy estimates (winner's curse). Vision Loss = max(all) − max(seen) inherits that bias, so Phase 5 needs a null model (random "seen" sets of the same size).

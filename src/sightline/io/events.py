@@ -40,6 +40,9 @@ _DECISION_COLS = {
     "team_in_possession_phase_type": "phase_type",
     "first_player_possession_in_team_possession": "first_in_team_possession",
     "game_interruption_before": "interruption_before",
+    "lead_to_goal": "lead_to_goal",
+    "carry": "carry",
+    "possession_epv_for_start": "sc_epv_start",
 }
 
 

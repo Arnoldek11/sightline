@@ -14,7 +14,8 @@ def test_event_coords_rotated_back_to_pitch_frame():
         "first_player_possession_in_team_possession": [True, False],
         "game_interruption_before": [None, "throw_in_for"],
         "attacking_side": ["left_to_right", "right_to_left"],
-        "event_type": "player_possession",
+        "event_type": "player_possession", "lead_to_goal": False, "carry": [True, False],
+        "possession_epv_for_start": 0.01,
     })
     d = decision_points(ev).set_index("event_id")
     assert (d.loc["a", ["x_start", "y_start"]] == [10.0, 5.0]).all()
