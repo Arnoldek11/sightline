@@ -1,0 +1,29 @@
+# Every tunable lives here. Defaults are chosen a priori and justified in docs/DECISIONS.md,
+# never tuned on final results.
+seed: 20261116
+fps: {tracking: 10, pose: 25}
+pose:
+  max_joint_err_cm: 15.0          # gate inherited from SkillCorner's pose_orientation baseline
+  shoulder_width_m: [0.15, 0.60]
+  mc_draws: 200
+  # p90_mae_cm is a 90% 3D radius -> sigma per axis = p90 / 2.5003 (Maxwell), see sightline.pose
+sync:
+  max_pose_xy_offset_m: 1.0
+vision:
+  cone_half_angle_deg: 60         # swept over [45, 60, 90]
+  cone_sweep_deg: [45, 60, 90]
+  memory_s: 1.5                   # swept over [1.0, 1.5, 2.5]
+  memory_sweep_s: [1.0, 1.5, 2.5]
+  max_displacement_m: 3.0
+  scan_turn_deg: 40
+  scan_window_s: 0.5
+  scan_lookback_s: 5.0
+options:
+  carry_directions: 8
+  carry_distances_m: [5, 10]
+  shot_max_dist_m: 30
+  lead_pass_s: 0.5
+value:
+  horizon_s: 10
+profiles:
+  min_decisions: 15

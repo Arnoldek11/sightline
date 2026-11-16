@@ -1,0 +1,21 @@
+# Competition data must never be committed
+data/
+reports/*
+!reports/final/
+*.parquet
+*.jsonl
+*.jsonl.gz
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+.ipynb_checkpoints/
+.env
+
+# Internal planning (kept local)
+PLAN.md

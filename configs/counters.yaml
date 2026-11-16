@@ -1,0 +1,7 @@
+primary:
+  window_s: 10
+  min_progress_m: 25
+  max_defenders_goal_side: 5
+secondary_phase_labels: [quick_break, transition]
+widen_if_fewer_than: 150
+fast_attack_window_s: 15
