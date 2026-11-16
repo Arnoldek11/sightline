@@ -41,3 +41,36 @@ Grid (receiver / other), head yaw:
 | Synthetic tests (facing angles, MC spread, frame mapping, sync flag, kinematics, counters, event rotation) | 24 passed | PASS |
 
 Pose coverage at release (synced head yaw), 1925299 / 1996435: all 856/1054 · 865/1005; open play 790/971 · 803/928; label counters 27/34 · 24/31; fast attacks 40/52 · 55/68.
+
+## Phase 2: perception (16 Nov 2026), `scripts/validate_vision.py` → `reports/vision_validation.json`
+Both pose games, head yaw, 200 MC draws with persistent noise (D-006), ±60° / 1.5 s / 3 m (D-007). Passes with a target and window pose coverage ≥ 50%: n = 1,001 (971 open play, 73 counter).
+AUC = within-pass probability that the receiver's P(seen) exceeds a random other teammate's.
+
+| Check (open play unless stated) | Receiver | Other | AUC | Status |
+|---|---|---|---|---|
+| 1. Receiver sanity (default) | 0.887 | 0.643 | 0.684 | PASS (≥ 0.75, clearly above) |
+| 1b. Excluding last 0.3 s before release | 0.847 | 0.625 | 0.663 | PASS, not just the kicking motion |
+| 1c. Receivers behind/beside (> 90° from attack dir.), all passes, n = 555 | 0.868 | 0.598 | 0.702 | PASS (hard case) |
+| 1d. Counters (n = 73) | 0.834 | 0.470 | 0.759 | PASS |
+| 1e. Torso instead of head | 0.912 | 0.628 | 0.668 | head ≈ torso |
+| 2. Placebo 180° | 0.162 | 0.406 | 0.293 | PASS (collapses, inverts) |
+| 2b. Placebo + exclude last 0.3 s | 0.153 | 0.367 | 0.311 | PASS |
+
+Grid, open play (receiver / other, AUC):
+
+| θ \ T | 1.0 s | 1.5 s | 2.5 s |
+|---|---|---|---|
+| 45° | .79/.51, .713 | .80/.56, .677 | .81/.60, .643 |
+| 60° | .88/.60, .717 | .89/.64, .684 | .90/.68, .660 |
+| 90° | .96/.76, .699 | .97/.79, .669 | .97/.82, .644 |
+
+P(seen) by option bearing from the attacking direction (all decisions): 0–45° 0.76, 45–90° 0.72, 90–135° 0.63, 135–180° 0.49. This is football-plausible: what is behind is seen least.
+
+**3. Construct validity (scanning): INCONCLUSIVE.** Scans = head turns > 40° within 0.5 s (mean 2.2 per 5 s before receiving).
+- Player level (40 players ≥ 15 decisions): scans vs P(seen behind) ρ = −0.36, but this is confounded by position (DMs scan most, 2.8 per 5 s, and face play; full-backs scan least, 1.5, and see behind easily from the touchline).
+- Within position, decision level: scans before *receiving* vs P(seen behind) ρ = 0.03 (none); scans in the *release window* ρ = 0.13 (weak, partly mechanical).
+- Pre-reception scanning does not show up in a 1.5 s pre-release memory. Proper test deferred to Phase 5 (scanning vs Vision Loss, controlled for position).
+
+**Human check:** 30 random decisions rendered to `reports/vision_frames/` (index.csv has columns for reviewer verdicts). Spot-check by Claude of 2 frames: plausible (cone, memory-seen receiver behind-left). **Awaiting human review.**
+
+**Phase 2 exit: PASS** (receiver sanity + placebo pass; defaults logged in D-007).

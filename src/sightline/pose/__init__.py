@@ -60,16 +60,27 @@ def facing(df: pd.DataFrame, max_err_cm: float = 15.0) -> pd.DataFrame:
 
 
 def sample_yaw(df: pd.DataFrame, kind: str = "head", n_draws: int = 200,
-               rng: np.random.Generator | None = None,
-               max_err_cm: float = 15.0) -> np.ndarray:
-    """Monte Carlo yaw draws, shape (len(df), n_draws). Joint xy ~ N(obs, sigma^2 I)."""
+               rng: np.random.Generator | None = None, max_err_cm: float = 15.0,
+               noise: np.ndarray | None = None) -> np.ndarray:
+    """Monte Carlo yaw draws, shape (len(df), n_draws). Joint xy ~ N(obs, sigma^2 I).
+
+    `noise`: optional standard-normal array (n_draws, n_joints, 2) shared by every row, i.e.
+    an error that persists over the rows (frames) instead of being redrawn per frame. The
+    pose output is temporally smooth (observed frame-to-frame head-yaw noise ~2 deg vs ~16 deg
+    implied by independent joint errors), so persistent noise is the realistic model over
+    a 1-2.5 s window (DECISIONS D-006). Default: independent per row.
+    """
     rng = rng or np.random.default_rng(0)
     joints = HEAD_JOINTS if kind == "head" else TORSO_JOINTS
+    if noise is not None:
+        n_draws = noise.shape[0]
     pts = []
-    for j in joints:
+    for k, j in enumerate(joints):
         xy = _xy(df, j)[:, None, :]
         sigma = (df[f"{j}_err"].to_numpy(float) / 100.0 * P90_TO_SIGMA)[:, None, None]
-        pts.append(xy + rng.standard_normal((len(df), n_draws, 2)) * sigma)
+        z = (noise[None, :, k, :] if noise is not None
+             else rng.standard_normal((len(df), n_draws, 2)))
+        pts.append(xy + z * sigma)
     draws = _head(*pts) if kind == "head" else _torso(*pts)
     ok = _quality(df, joints, max_err_cm)
     draws[~ok] = np.nan

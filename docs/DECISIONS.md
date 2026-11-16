@@ -33,3 +33,9 @@ Rule vs label: both 271, rule only 806, label only 7. The label is almost a stri
 Proposal: **headline counter = label OR (rule AND fast attack)**: SkillCorner's expert label plus rule-based sequences that actually threatened (shot or box entry within 15 s). The PLAN rule stays as a sensitivity variant. Not tuned on results (no loss numbers exist yet).
 
 Implemented as `counter` in `sightline.counters` (counters.parquet + decisions.parquet). Decisions inside the first 15 s of a headline counter: 1,394 (all games). The other flags stay available as sensitivity variants.
+
+## D-006 (16 Nov 2026): pose error is persistent over the memory window
+Independent per-frame joint noise implies head-yaw sd ≈ 16° per frame, but the observed frame-to-frame head-yaw noise is ≈ 2.3° (torso 1.5°; robust second differences, 1.4M frames, 1925299). The pose output is temporally smooth, so its error is mostly a slowly varying bias. P(seen) therefore uses **one noise draw per Monte Carlo sample, shared by all lags of a decision** (`sample_yaw(noise=...)`). Independent per-frame draws inflated "seen at least once" (other teammates 0.74 vs 0.64). The ≈16° spread is still an upper bound: head joints' errors are probably correlated with each other, which would shrink yaw error further.
+
+## D-007 (16 Nov 2026): default cone ±60°, memory 1.5 s, chosen a priori, not tuned
+Kept the PLAN defaults. On the receiver-sanity AUC the grid optimum is ±60° / 1.0 s (0.717 vs 0.684 at 1.5 s), but discriminating the receiver is a check, not the objective (we want what the carrier could know about, not a pass predictor), so the default is not moved towards it. The full 3×3 grid is carried to the Phase 5 sensitivity analysis. Options are teammates at any distance (no range limit). Decisions need pose on ≥ 50% of window samples (86.5% of decisions pass).

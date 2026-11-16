@@ -79,3 +79,12 @@ def test_records_to_table_skips_null_joints():
     df = records_to_table(recs)
     assert list(df.player_id) == [2]
     assert df.nose_x.iloc[0] == 1 and np.isnan(df.lEar_x.iloc[0])
+
+
+def test_shared_noise_is_persistent_across_rows():
+    df = pd.DataFrame([skeleton_row(0.5, err=10.0)] * 3)
+    z = np.random.default_rng(3).standard_normal((100, 3, 2))
+    d = pose.sample_yaw(df, "head", noise=z)
+    assert d.shape == (3, 100)
+    assert np.allclose(d[0], d[1], equal_nan=True) and np.allclose(d[1], d[2], equal_nan=True)
+    assert pose.circ_std(d[0]) > 0.05
